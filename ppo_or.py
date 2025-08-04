@@ -422,7 +422,9 @@ if __name__ == "__main__":
                         if args.problem == 'tsp':
                             action = torch.arange(args.n_traj).repeat(args.n_test, 1)
                         elif args.problem == 'cvrp':
-                            action = torch.arange(1, args.n_traj + 1).repeat(args.n_test, 1)
+                            # action = torch.arange(1, args.n_traj + 1).repeat(args.n_test, 1)
+                            max_valid_action = min(args.max_nodes, args.n_traj)
+                            action = torch.arange(1, max_valid_action + 1).repeat(args.n_test, 1)
                 # TRY NOT TO MODIFY: execute the game and log data.
                 test_obs, _, _, test_info = test_envs.step(action.cpu().numpy())
 
