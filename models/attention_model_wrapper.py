@@ -157,5 +157,5 @@ class stateWrapper:
         return self.states["last_node_idx"]
 
     def get_mask(self):
-        return (1 - self.states["action_mask"]).to(torch.bool)
-        # return self.states["action_mask"].to(torch.bool)
+        # return (1 - self.states["action_mask"]).to(torch.bool)
+        return self.states["action_mask"].to(torch.bool)
