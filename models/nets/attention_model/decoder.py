@@ -197,15 +197,8 @@ class Decoder(nn.Module):
 
         # logits, glimpse = self.calc_logits(query, glimpse_K, glimpse_V, logit_K, mask)
 
-        # 1) 拿到合法动作掩码
-        mask = state.get_mask()  # True 表示该动作合法
-        # print(">>> semantic of mask? first batch row:", mask[0].long().tolist())
-        # 2) 计算原始 logits & glimpse
+        mask = state.get_mask()  # True表示需要被mask掉的位置
         logits, glimpse = self.calc_logits(query, glimpse_K, glimpse_V, logit_K, mask)
-        # 3) 手动屏蔽：把非法位置打成 -1e9（而不是 -inf），保留合法位置
-        logits = logits.masked_fill(~mask, -1e9)
-        # 4) 最后再做一次 nan/inf 兜底
-        logits = torch.nan_to_num(logits, nan=-1e9, posinf=1e9, neginf=-1e9)
 
         return logits, glimpse
 

@@ -86,7 +86,10 @@ class CVRPVectorEnv(gym.Env):
 
     def _update_mask(self):
         mask = ~self.visited
-        mask[:, 0] = True  # 总是允许回depot
+        # Depot只能在所有取送任务完成后访问
+        all_tasks_done = self.is_all_visited()
+        mask[:, 0] = all_tasks_done
+        
         mask[:, 1:self.max_nodes + 1] &= (self.load[:, None] < self.capacity_limit)
         
         for i in range(1, self.max_nodes + 1):
