@@ -423,8 +423,17 @@ if __name__ == "__main__":
                             action = torch.arange(args.n_traj).repeat(args.n_test, 1)
                         elif args.problem == 'cvrp':
                             # action = torch.arange(1, args.n_traj + 1).repeat(args.n_test, 1)
-                            max_valid_action = min(args.max_nodes, args.n_traj)
-                            action = torch.arange(1, max_valid_action + 1).repeat(args.n_test, 1)
+
+                            pickup_actions = torch.arange(1, args.max_nodes + 1)
+                            if args.n_traj <= args.max_nodes:
+                                action = pickup_actions[:args.n_traj].repeat(args.n_test, 1)
+                            else:
+                                # If n_traj > max_nodes, cycle through pickup actions
+                                repeated_actions = pickup_actions.repeat((args.n_traj // args.max_nodes) + 1)
+                                action = repeated_actions[:args.n_traj].repeat(args.n_test, 1)
+
+                            # max_valid_action = min(args.max_nodes, args.n_traj)
+                            # action = torch.arange(1, max_valid_action + 1).repeat(args.n_test, 1)
                 # TRY NOT TO MODIFY: execute the game and log data.
                 test_obs, _, _, test_info = test_envs.step(action.cpu().numpy())
 

@@ -115,11 +115,49 @@ class CVRPVectorEnv(gym.Env):
         }
         return obs
 
+    # def _go_to(self, destin):
+    #     # destin: shape (n_traj,), 每条轨迹要访问的节点索引
+    #     dest_coord = self.nodes[destin]
+    #     d = self.cost(dest_coord, self.nodes[self.last])
+    #     self.last = destin
+
+    #     # 访问 Depot：重置载客量
+    #     self.load[destin == 0] = 0.0
+
+    #     # 访问取货点 1..N：载客量 +1
+    #     pickup_mask = (destin > 0) & (destin <= self.max_nodes)
+    #     self.load[pickup_mask] += 1.0
+    #     # 访问送货点 N+1..2N：载客量 -1
+    #     dropoff_mask = destin > self.max_nodes
+    #     self.load[dropoff_mask] -= 1.0
+
+    #     # 将该节点标记为已访问
+    #     self.visited[np.arange(self.n_traj), destin] = True
+
+    #     # 奖励为负距离
+    #     self.reward = -d
+
     def _go_to(self, destin):
         # destin: shape (n_traj,), 每条轨迹要访问的节点索引
-        dest_coord = self.nodes[destin]
-        d = self.cost(dest_coord, self.nodes[self.last])
-        self.last = destin
+        # Ensure destin has the correct shape
+        if isinstance(destin, (list, np.ndarray)):
+            destin = np.array(destin)
+        
+        # Ensure destin matches n_traj length
+        if len(destin) != self.n_traj:
+            raise ValueError(f"Action length {len(destin)} doesn't match n_traj {self.n_traj}")
+        
+        # Get destination coordinates for each trajectory
+        dest_coord = self.nodes[destin]  # shape: (n_traj, 2)
+        
+        # Get current position coordinates for each trajectory  
+        current_coord = self.nodes[self.last]  # shape: (n_traj, 2)
+        
+        # Calculate distances
+        d = self.cost(dest_coord, current_coord)
+        
+        # Update last visited node
+        self.last = destin.copy() if isinstance(destin, np.ndarray) else np.array(destin)
 
         # 访问 Depot：重置载客量
         self.load[destin == 0] = 0.0
@@ -127,6 +165,7 @@ class CVRPVectorEnv(gym.Env):
         # 访问取货点 1..N：载客量 +1
         pickup_mask = (destin > 0) & (destin <= self.max_nodes)
         self.load[pickup_mask] += 1.0
+        
         # 访问送货点 N+1..2N：载客量 -1
         dropoff_mask = destin > self.max_nodes
         self.load[dropoff_mask] -= 1.0
