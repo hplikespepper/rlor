@@ -423,7 +423,7 @@ def solve_and_visualize(model_path, max_nodes=10, capacity_limit=20, n_traj=50, 
 
 def main():
     parser = argparse.ArgumentParser(description='Ride-sharing CVRP Visualization')
-    parser.add_argument('--model-path', type=str, required=True, help='Path to trained model')
+    parser.add_argument('--model-path', type=str, required=True, help='Path to trained model', default='/home/data/phuang/project2_3_ML/rlor/runs_2/cvrp-v0__olor_ride_sharing_cvrp__1__1754339201/ckpt/15000.pt')
     parser.add_argument('--max-nodes', type=int, default=10, help='Number of pickup points')
     parser.add_argument('--capacity-limit', type=int, default=20, help='Vehicle capacity limit')
     parser.add_argument('--n-traj', type=int, default=50, help='Number of POMO trajectories')
