@@ -26,8 +26,22 @@ class CVRPVectorEnv(gym.Env):
         self.eval_partition = "test"
         self.eval_data_idx = 0
         self.demand_limit = 10        # 随机生成时的最大需求
+        
+        # 新增：支持固定测试数据
+        self.use_fixed_data = False
+        self.fixed_coordinates = None
+        self.fixed_depot = None
+        
         # 覆盖
         assign_env_config(self, kwargs)
+
+        # 检查是否使用固定数据
+        if hasattr(self, 'fixed_coordinates') and self.fixed_coordinates is not None:
+            self.use_fixed_data = True
+            self.fixed_coordinates = np.array(self.fixed_coordinates)
+            if hasattr(self, 'fixed_depot') and self.fixed_depot is not None:
+                self.fixed_depot = np.array(self.fixed_depot)
+            print(f"Using fixed coordinates with shape: {self.fixed_coordinates.shape}")
 
         # 总节点数 = Depot + N 取货点 + N 送货点
         self.total_nodes = 2 * self.max_nodes + 1
@@ -177,7 +191,22 @@ class CVRPVectorEnv(gym.Env):
         self.reward = -d
 
     def _LOAD_OR_GENERATE(self):
-        if self.eval_data:
+        if self.use_fixed_data:
+            # 使用固定的测试数据
+            print("Loading fixed test data...")
+            self.nodes = self.fixed_coordinates.copy()  # shape: (2N+1, 2)
+            
+            # 验证数据格式
+            expected_nodes = 2 * self.max_nodes + 1
+            if len(self.nodes) != expected_nodes:
+                raise ValueError(f"Fixed coordinates should have {expected_nodes} nodes, got {len(self.nodes)}")
+            
+            # demands: pickup points (+1), dropoff points (-1)  
+            self.demands = np.concatenate([
+                np.ones(self.max_nodes),      # pickup points: +1
+                -np.ones(self.max_nodes)      # dropoff points: -1  
+            ])
+        elif self.eval_data:
             # 从数据集中读取（暂不支持 pre-generated Pickup-Delivery 数据，建议只用随机生成做训练/测试）
             data = VRPDataset[self.eval_partition, self.max_nodes, self.eval_data_idx]
             self.nodes = np.concatenate((data["depot"][None, ...], data["loc"]))
